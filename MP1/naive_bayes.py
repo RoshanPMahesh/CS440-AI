@@ -49,12 +49,15 @@ Main function for training and predicting with naive bayes.
     You can modify the default values for the Laplace smoothing parameter and the prior for the positive label.
     Notice that we may pass in specific values for these parameters during our testing.
 """
-def naiveBayes(dev_set, train_set, train_labels, laplace=1.0, pos_prior=0.85, silently=False):
+def naiveBayes(dev_set, train_set, train_labels, laplace=0.01, pos_prior=0.80, silently=False):
     yhats = []
     neg_prior = 1 - pos_prior
+
+    # trains the naive bayes algorithm by going through the training set data
     negative_known_prob, negative_unknown_prob = trainingPhase(train_set, train_labels, laplace, 0)
     positive_known_prob, positive_unknown_prob = trainingPhase(train_set, train_labels, laplace, 1)
     
+    # goes through the development set to calculate whether the reviews are positive or negative
     for individual_set in dev_set:
         positive_words_prob = 0
         negative_words_prob = 0
@@ -62,6 +65,8 @@ def naiveBayes(dev_set, train_set, train_labels, laplace=1.0, pos_prior=0.85, si
         positive_words_prob += npy.log(pos_prior)
         negative_words_prob += npy.log(neg_prior)
 
+        # calculates the probability of each review being positive or negative
+        # takes the log function to prevent underflow
         for words in individual_set:
             if words in negative_known_prob:
                 negative_words_prob += npy.log(negative_known_prob[words])
@@ -73,6 +78,7 @@ def naiveBayes(dev_set, train_set, train_labels, laplace=1.0, pos_prior=0.85, si
             else:
                 positive_words_prob += npy.log(positive_unknown_prob)
 
+        # appends a 1 for positive reviews, 0 for negative reviews
         if (positive_words_prob >= negative_words_prob):
             yhats.append(1)
         else:
