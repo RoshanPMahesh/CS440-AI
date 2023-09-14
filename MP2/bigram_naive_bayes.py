@@ -54,7 +54,7 @@ Main function for training and predicting with the bigram mixture model.
     You can modify the default values for the Laplace smoothing parameters, model-mixture lambda parameter, and the prior for the positive label.
     Notice that we may pass in specific values for these parameters during our testing.
 """
-def bigramBayes(dev_set, train_set, train_labels, unigram_laplace=1.0, bigram_laplace=0.1, bigram_lambda=0.1, pos_prior=0.75, silently=False):
+def bigramBayes(dev_set, train_set, train_labels, unigram_laplace=0.15, bigram_laplace=0.1, bigram_lambda=0.9, pos_prior=0.75, silently=False):
     print_values_bigram(unigram_laplace, bigram_laplace, bigram_lambda, pos_prior)
 
     # unigram part of code
