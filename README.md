@@ -4,3 +4,5 @@ This repository contains all of the coding assignments for CS 440: Artificial In
 
 - MP1: Naive Bayes
 - MP2: Bigram Naive Bayes
+- MP3: A* Search
+- MP4: A* Search for Grid Search
