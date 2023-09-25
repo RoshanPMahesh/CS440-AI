@@ -1,5 +1,6 @@
 from utils import is_english_word, levenshteinDistance
 from abc import ABC, abstractmethod
+import copy
 
 # NOTE: using this global index means that if we solve multiple 
 #       searches consecutively the index doesn't reset to 0...
@@ -165,6 +166,24 @@ class EightPuzzleState(AbstractState):
         # NOTE: There are *up to 4* possible neighbors and the order you add them matters for tiebreaking
         #   Please add them in the following order: [below, left, above, right], where for example "below" 
         #   corresponds to moving the empty tile down (moving the tile below the empty tile up)
+        neighbor = [(1, 0), (0, -1), (-1, 0), (0, 1)]
+        temp_state = [[0]*3]*3
+        empty_x, empty_y = self.zero_loc
+        
+        for move_x, move_y in neighbor:
+            new_x = empty_x + move_x
+            new_y = empty_y + move_y
+
+            if new_x >= 0 and new_x < 3:
+                if new_y >= 0 and new_y < 3:
+                    new_square = copy.deepcopy(self.state)
+
+                    temp_state[0][0] = new_square[empty_x][empty_y]
+                    new_square[empty_x][empty_y] = new_square[new_x][new_y]
+                    new_square[new_x][new_y] = temp_state[0][0]
+                   
+                    new_game = EightPuzzleState(new_square, self.goal, self.dist_from_start + 1, self.use_heuristic, (new_x, new_y))
+                    nbr_states.insert(len(nbr_states), new_game)
 
         return nbr_states
 
@@ -184,7 +203,14 @@ class EightPuzzleState(AbstractState):
         total = 0
         # NOTE: There is more than one possible heuristic, 
         #       please implement the Manhattan heuristic, as described in the MP instructions
-
+        boundaries = 3
+        for i in range(boundaries):
+            for j in range(boundaries):
+                if self.state[i][j] == 0:
+                    continue
+                else:
+                    quotient, reminder = divmod(self.state[i][j], boundaries)
+                    total += manhattan((i, quotient), (j, reminder))
         return total
     
     # TODO(IV): implement this method
