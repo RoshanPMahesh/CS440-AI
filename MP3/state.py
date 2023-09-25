@@ -117,7 +117,19 @@ class WordLadderState(AbstractState):
     def __lt__(self, other):    
         # You should return True if the current state has a lower g + h value than "other"
         # If they have the same value then you should use tiebreak_idx to decide which is smaller
-        pass
+        c_state = self.dist_from_start + self.h
+        o_state = other.dist_from_start + other.h
+
+        if c_state < o_state:
+            return True
+        elif c_state == o_state:
+            if self.tiebreak_idx < other.tiebreak_idx:
+                return True
+            else:
+                return False
+        else:
+            return False
+       # pass
     
     # str and repr just make output more readable when you print out states
     def __str__(self):
@@ -130,7 +142,8 @@ class WordLadderState(AbstractState):
 # TODO(IV): implement this method (also need it for parts V and VI)
 # Manhattan distance between two points (a=(a1,a2), b=(b1,b2))
 def manhattan(a, b):
-    return 0
+    dist = abs(a[0] - a[1]) + abs(b[0] - b[1])
+    return dist
 
 class EightPuzzleState(AbstractState):
     def __init__(self, state, goal, dist_from_start, use_heuristic, zero_loc):
@@ -152,7 +165,7 @@ class EightPuzzleState(AbstractState):
         # NOTE: There are *up to 4* possible neighbors and the order you add them matters for tiebreaking
         #   Please add them in the following order: [below, left, above, right], where for example "below" 
         #   corresponds to moving the empty tile down (moving the tile below the empty tile up)
-        
+
         return nbr_states
 
     # Checks if goal has been reached
@@ -171,13 +184,26 @@ class EightPuzzleState(AbstractState):
         total = 0
         # NOTE: There is more than one possible heuristic, 
         #       please implement the Manhattan heuristic, as described in the MP instructions
-        
+
         return total
     
     # TODO(IV): implement this method
     # Hint: it should be identical to what you wrote in WordLadder.__lt__(self, other)
     def __lt__(self, other):
-        pass
+        c_state = self.dist_from_start + self.h
+        o_state = other.dist_from_start + other.h
+
+        if c_state < o_state:
+            return True
+        elif c_state == o_state:
+            if self.tiebreak_idx < other.tiebreak_idx:
+                return True
+            else:
+                return False
+        else:
+            return False
+        
+        #pass
     
     # str and repr just make output more readable when you print out states
     def __str__(self):
