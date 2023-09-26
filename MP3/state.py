@@ -144,6 +144,7 @@ class WordLadderState(AbstractState):
 # Manhattan distance between two points (a=(a1,a2), b=(b1,b2))
 def manhattan(a, b):
     dist = abs(a[0] - a[1]) + abs(b[0] - b[1])
+    # print("Distance: ", dist)
     return dist
 
 class EightPuzzleState(AbstractState):
@@ -167,7 +168,7 @@ class EightPuzzleState(AbstractState):
         #   Please add them in the following order: [below, left, above, right], where for example "below" 
         #   corresponds to moving the empty tile down (moving the tile below the empty tile up)
         neighbor = [(1, 0), (0, -1), (-1, 0), (0, 1)]
-        temp_state = [[0]*3]*3
+        temp_state = [[0]]
         empty_x, empty_y = self.zero_loc
         
         for move_x, move_y in neighbor:
@@ -181,7 +182,7 @@ class EightPuzzleState(AbstractState):
                     temp_state[0][0] = new_square[empty_x][empty_y]
                     new_square[empty_x][empty_y] = new_square[new_x][new_y]
                     new_square[new_x][new_y] = temp_state[0][0]
-                   
+                    
                     new_game = EightPuzzleState(new_square, self.goal, self.dist_from_start + 1, self.use_heuristic, (new_x, new_y))
                     nbr_states.insert(len(nbr_states), new_game)
 
@@ -209,8 +210,10 @@ class EightPuzzleState(AbstractState):
                 if self.state[i][j] == 0:
                     continue
                 else:
-                    quotient, reminder = divmod(self.state[i][j], boundaries)
-                    total += manhattan((i, quotient), (j, reminder))
+                    tile = self.state[i][j]
+                    goal_location = [(x, y) for x in range(boundaries) for y in range(boundaries) if self.goal[x][y] == tile][0]
+                    total += manhattan((i, goal_location[0]), (j, goal_location[1]))
+
         return total
     
     # TODO(IV): implement this method
