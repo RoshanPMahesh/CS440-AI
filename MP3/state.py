@@ -144,7 +144,6 @@ class WordLadderState(AbstractState):
 # Manhattan distance between two points (a=(a1,a2), b=(b1,b2))
 def manhattan(a, b):
     dist = abs(a[0] - a[1]) + abs(b[0] - b[1])
-    # print("Distance: ", dist)
     return dist
 
 class EightPuzzleState(AbstractState):
@@ -167,22 +166,31 @@ class EightPuzzleState(AbstractState):
         # NOTE: There are *up to 4* possible neighbors and the order you add them matters for tiebreaking
         #   Please add them in the following order: [below, left, above, right], where for example "below" 
         #   corresponds to moving the empty tile down (moving the tile below the empty tile up)
+        
+        # all 4 possible neighbors
         neighbor = [(1, 0), (0, -1), (-1, 0), (0, 1)]
+
         temp_state = [[0]]
         empty_x, empty_y = self.zero_loc
         
+        # checks all neighbors in the correct order that is specified above
         for move_x, move_y in neighbor:
             new_x = empty_x + move_x
             new_y = empty_y + move_y
 
+            # bound checking to see if the coordinate is in the game
             if new_x >= 0 and new_x < 3:
                 if new_y >= 0 and new_y < 3:
+                    # creates a copy of the current states
                     new_square = copy.deepcopy(self.state)
 
+                    # moves the empty square to where the current square is
+                    # and moves the current square to where the empty square is
                     temp_state[0][0] = new_square[empty_x][empty_y]
                     new_square[empty_x][empty_y] = new_square[new_x][new_y]
                     new_square[new_x][new_y] = temp_state[0][0]
                     
+                    # creates a new instance of the updated puzzle game and inserts it into the list
                     new_game = EightPuzzleState(new_square, self.goal, self.dist_from_start + 1, self.use_heuristic, (new_x, new_y))
                     nbr_states.insert(len(nbr_states), new_game)
 
@@ -204,6 +212,8 @@ class EightPuzzleState(AbstractState):
         total = 0
         # NOTE: There is more than one possible heuristic, 
         #       please implement the Manhattan heuristic, as described in the MP instructions
+        
+        # implements the Manhattan heuristic using the manhattan function
         boundaries = 3
         for i in range(boundaries):
             for j in range(boundaries):

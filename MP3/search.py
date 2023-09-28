@@ -51,6 +51,7 @@ def best_first_search(starting_state):
 
             # updates the list of visited states
             if (neighbors not in visited_states) or ((node_dist + neighbors.compute_heuristic()) < visited_states[neighbors][distance]):
+                # puts the correct distance from the start state for the neighbor
                 visited_states[neighbors] = (curr_state, node_dist + neighbors.compute_heuristic())              
                 heapq.heappush(frontier, neighbors)
 
