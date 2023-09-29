@@ -154,18 +154,27 @@ class GridState(AbstractState):
         # You need to instantiate them as GridState objects
         neighboring_locs = self.maze_neighbors(*self.state)
 
+        for neighboring_states in neighboring_locs:
+            neighbors = GridState(neighboring_states, self.goal, self.dist_from_start + 1, self.use_heuristic, self.maze_neighbors, self.mst_cache)
+            nbr_states.insert(len(nbr_states), neighbors)
         
         return nbr_states
 
     # TODO(VI): implement this method
     def is_goal(self):
-        pass
+        if ((self.state[0] == self.goal[0][0]) and (self.state[1] == self.goal[0][1])):
+            return True
+        else:
+            return False
+        # pass
     
     # TODO(VI): implement these methods __hash__ AND __eq__
     def __hash__(self):
-        return 0
+        return hash(self.state)
+       # return 0
     def __eq__(self, other):
-        return True
+        return self.state == other.state
+        #return True
     
     # TODO(VI): implement this method
     # Our heuristic is: manhattan(self.state, nearest_goal) + MST(self.goal)
@@ -178,7 +187,20 @@ class GridState(AbstractState):
     
     # TODO(VI): implement this method... should be unchanged from before
     def __lt__(self, other):
-        pass
+        c_state = self.dist_from_start + self.h
+        o_state = other.dist_from_start + other.h
+
+        if c_state < o_state:
+            return True
+        elif c_state == o_state:
+            if self.tiebreak_idx < other.tiebreak_idx:
+                return True
+            else:
+                return False
+        else:
+            return False
+        
+        # pass
     
     # str and repr just make output more readable when your print out states
     def __str__(self):
