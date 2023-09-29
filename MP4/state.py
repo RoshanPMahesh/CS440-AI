@@ -183,7 +183,17 @@ class GridState(AbstractState):
     #       and so the heuristic reduces to manhattan(self.state, self.goal[0])
     # You should use compute_mst_cost(self.goal, manhattan) which we imported from utils.py
     def compute_heuristic(self):
-        return 0
+        current_x, current_y = self.state
+        goal_x = self.goal[0][0]
+        goal_y = self.goal[0][1]
+        if len(self.goal) == 0:
+            return (abs(current_x - goal_x) + abs(current_y - goal_y))
+        else:
+            if self.goal in self.mst_cache:
+                return (abs(current_x - goal_x) + abs(current_y - goal_y) + self.mst_cache[self.goal])
+            else:
+                self.mst_cache[self.goal] = compute_mst_cost(self.goal, abs(current_x - goal_x) + abs(current_y - goal_y))
+                return (abs(current_x - goal_x) + abs(current_y - goal_y) + self.mst_cache[self.goal])
     
     # TODO(VI): implement this method... should be unchanged from before
     def __lt__(self, other):
