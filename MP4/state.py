@@ -79,32 +79,60 @@ class SingleGoalGridState(AbstractState):
         # We provide you with a method for getting a list of neighbors of a state,
         # you need to instantiate them as GridState objects
         neighboring_grid_locs = self.maze_neighbors(*self.state)
-        
+        for neighboring_states in neighboring_grid_locs:
+            neighbors = SingleGoalGridState(neighboring_states, self.goal, self.dist_from_start + 1, self.use_heuristic, self.maze_neighbors)
+            nbr_states.insert(len(nbr_states), neighbors)
+
         return nbr_states
 
     # TODO(V): implement this method, check if the current state is the goal state
     def is_goal(self):
-        pass
+        if ((self.state[0] == self.goal[0][0]) and (self.state[1] == self.goal[0][1])):
+            return True
+        else:
+            return False
+
+        # pass
     
     def __hash__(self):
         return hash(self.state)
     def __eq__(self, other):
         return self.state == other.state
-    
+
     # TODO(V): implement this method
     # Compute the manhattan distance between self.state and self.goal 
     def compute_heuristic(self):
-        return 0
+        current_x, current_y = self.state
+        goal_x = self.goal[0][0]
+        goal_y = self.goal[0][1]
+        return (abs(current_x - goal_x) + abs(current_y - goal_y))
     
     # TODO(V): implement this method... should be unchanged from before
     def __lt__(self, other):
-        pass
+        c_state = self.dist_from_start + self.h
+        o_state = other.dist_from_start + other.h
+
+        if c_state < o_state:
+            return True
+        elif c_state == o_state:
+            if self.tiebreak_idx < other.tiebreak_idx:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+        # pass
     
     # str and repr just make output more readable when your print out states
     def __str__(self):
         return str(self.state) + ", goal=" + str(self.goal)
     def __repr__(self):
         return str(self.state) + ", goal=" + str(self.goal)
+
+
+
+# SECOND PART
 
 
 class GridState(AbstractState):
@@ -125,6 +153,7 @@ class GridState(AbstractState):
         # We provide you with a method for getting a list of neighbors of a state,
         # You need to instantiate them as GridState objects
         neighboring_locs = self.maze_neighbors(*self.state)
+
         
         return nbr_states
 
