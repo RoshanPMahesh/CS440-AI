@@ -133,7 +133,9 @@ class SingleGoalGridState(AbstractState):
 
 
 # SECOND PART
-
+def manhattan(a, b):
+    dist = abs(a[0] - b[0]) + abs(a[1] - b[1])
+    return dist
 
 class GridState(AbstractState):
     def __init__(self, state, goal, dist_from_start, use_heuristic, maze_neighbors, mst_cache=None):
@@ -155,14 +157,15 @@ class GridState(AbstractState):
         neighboring_locs = self.maze_neighbors(*self.state)
 
         for neighboring_states in neighboring_locs:
-            neighbors = GridState(neighboring_states, self.goal, self.dist_from_start + 1, self.use_heuristic, self.maze_neighbors, self.mst_cache)
+            neighbors = GridState(neighboring_states, tuple(goal for goal in self.goal if goal != neighboring_states), self.dist_from_start + 1, self.use_heuristic, self.maze_neighbors, self.mst_cache)
             nbr_states.insert(len(nbr_states), neighbors)
         
         return nbr_states
 
+
     # TODO(VI): implement this method
     def is_goal(self):
-        if ((self.state[0] == self.goal[0][0]) and (self.state[1] == self.goal[0][1])):
+        if len(self.goal) == 0:
             return True
         else:
             return False
@@ -170,10 +173,10 @@ class GridState(AbstractState):
     
     # TODO(VI): implement these methods __hash__ AND __eq__
     def __hash__(self):
-        return hash(self.state)
+        return hash((self.state, self.goal))
        # return 0
     def __eq__(self, other):
-        return self.state == other.state
+        return self.state == other.state and self.goal == other.goal
         #return True
     
     # TODO(VI): implement this method
@@ -183,17 +186,17 @@ class GridState(AbstractState):
     #       and so the heuristic reduces to manhattan(self.state, self.goal[0])
     # You should use compute_mst_cost(self.goal, manhattan) which we imported from utils.py
     def compute_heuristic(self):
-        current_x, current_y = self.state
-        goal_x = self.goal[0][0]
-        goal_y = self.goal[0][1]
         if len(self.goal) == 0:
-            return (abs(current_x - goal_x) + abs(current_y - goal_y))
+            return 0
+        
+        near_goal = min(self.goal, key=lambda goals: manhattan(self.state, goals))
+        manhattan_calc = manhattan(self.state, near_goal)
+
+        if self.goal in self.mst_cache:
+            return manhattan_calc + self.mst_cache[self.goal]
         else:
-            if self.goal in self.mst_cache:
-                return (abs(current_x - goal_x) + abs(current_y - goal_y) + self.mst_cache[self.goal])
-            else:
-                self.mst_cache[self.goal] = compute_mst_cost(self.goal, abs(current_x - goal_x) + abs(current_y - goal_y))
-                return (abs(current_x - goal_x) + abs(current_y - goal_y) + self.mst_cache[self.goal])
+            self.mst_cache[self.goal] = compute_mst_cost(self.goal, manhattan)
+            return manhattan_calc + self.mst_cache[self.goal]
     
     # TODO(VI): implement this method... should be unchanged from before
     def __lt__(self, other):
