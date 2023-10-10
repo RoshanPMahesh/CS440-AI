@@ -16,6 +16,7 @@ import numpy as np
 from alien import Alien
 from typing import List, Tuple
 from copy import deepcopy
+import math as mh
 
 
 def does_alien_touch_wall(alien: Alien, walls: List[Tuple[int]]):
@@ -65,6 +66,14 @@ def does_alien_path_touch_wall(alien: Alien, walls: List[Tuple[int]], waypoint: 
         Return:
             True if touched, False if not
     """
+    curr_position = alien.get_centroid()
+
+    # iterates through all of the walls and checks if the line segment between the alien's current position and the waypoint intersects with a wall
+    for each_wall in walls:
+        start_x, start_y, end_x, end_y = each_wall
+        if do_segments_intersect((curr_position, waypoint), ((start_x, start_y), (end_x, end_y))) == True:
+            return True
+
     return False
 
 
@@ -78,7 +87,49 @@ def point_segment_distance(p, s):
         Return:
             Euclidean distance from the point to the line segment.
     """
-    return -1
+    # learned about the use of projections from: https://math.stackexchange.com/questions/62633/orthogonal-projection-of-a-point-onto-a-line
+
+    x, y = p
+    x1, y1 = s[0]
+    x2, y2 = s[1]
+    line_seg_dist = mh.sqrt(((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1)))
+
+    # projection of the point onto the line segment
+    projection = (((x - x1) * (x2 - x1)) + ((y - y1) * (y2 - y1))) / (line_seg_dist * line_seg_dist)
+
+    # uses projection to get the point on the line segment that is closest to the original point
+    new_x = (projection * (x2 - x1)) + x1
+    new_y = (projection * (y2 - y1)) + y1 
+
+    # if the projection is 0 or 1, then the distance is just from the point to the endpoint of the line segment
+    # if the projection is between 0 and 1, then the distance is the point from the projection to the original point
+    if projection <= 0:
+        return mh.sqrt(((x - x1) * (x - x1)) + ((y - y1) * (y - y1)))
+    elif projection >= 1:
+        return mh.sqrt(((x - x2) * (x - x2)) + ((y - y2) * (y - y2)))
+    else:
+        return mh.sqrt(((x - new_x) * (x - new_x)) + ((y - new_y) * (y - new_y)))
+
+
+def direction(a, b, c):
+    dir = ((b[1] - a[1]) * (c[0] - b[0])) - ((b[0] - a[0]) * (c[1] - b[1]))
+    if dir < 0:
+        # counter-clockwise direction
+        return -1
+    elif dir > 0:
+        # clockwise direction
+        return 1
+    else:
+        # collinear
+        return 0
+    
+
+def check_collinear_collision(a, b, c):
+    # if the (x, y) coordinate is in range of the (x, y) coordinates of the line segment, then it's a collinear collision
+    if (a[0] <= max(b[0], c[0]) and a[0] >= min(b[0], c[0]) and a[1] <= max(b[1], c[1]) and a[1] >= min(b[1], c[1])):
+        return True
+    else:
+        return False
 
 
 def do_segments_intersect(s1, s2):
@@ -91,7 +142,32 @@ def do_segments_intersect(s1, s2):
         Return:
             True if line segments intersect, False if not.
     """
-    return False
+    # learned about the direction of ordered triplet of points from: https://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/
+
+    s1_end1, s1_end2 = s1
+    s2_end1, s2_end2 = s2
+
+    # computes the direction of the triplet of points: counter-clockwise, clockwise, or collinear
+    dir1 = direction(s1_end1, s1_end2, s2_end1)
+    dir2 = direction(s1_end1, s1_end2, s2_end2)
+    dir3 = direction(s2_end1, s2_end2, s1_end1)
+    dir4 = direction(s2_end1, s2_end2, s1_end2)
+
+    # this condition means that the segments intersect
+    if dir1 != dir2 and dir3 != dir4:
+        return True
+
+    # all the collinear cases where the segments still intersect
+    if dir1 == 0 and check_collinear_collision(s1_end1, s2_end1, s2_end2) == True:
+        return True
+    elif dir2 == 0 and check_collinear_collision(s1_end2, s2_end1, s2_end2) == True:
+        return True
+    elif dir3 == 0 and check_collinear_collision(s2_end1, s1_end1, s1_end2) == True:
+        return True
+    elif dir4 == 0 and check_collinear_collision(s2_end2, s1_end1, s1_end2) == True:
+        return True
+    else:
+        return False
 
 
 def segment_distance(s1, s2):
@@ -104,7 +180,22 @@ def segment_distance(s1, s2):
         Return:
             Euclidean distance between the two line segments.
     """
-    return -1
+    if do_segments_intersect(s1, s2) == True:
+        # the segments intersect so the distance is 0
+        return 0
+    else:
+        s1_end1, s1_end2 = s1
+        s2_end1, s2_end2 = s2
+
+        # gets the distance from each endpoint of each line segment to the other line segment
+        distance1 = point_segment_distance(s1_end1, s2)
+        distance2 = point_segment_distance(s1_end2, s2)
+        distance3 = point_segment_distance(s2_end1, s1)
+        distance4 = point_segment_distance(s2_end2, s1)
+
+        # minimum calculated distance is the euclidean distance
+        return min(distance1, distance2, distance3, distance4)
+    
 
 
 if __name__ == '__main__':
