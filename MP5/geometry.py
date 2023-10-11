@@ -64,19 +64,11 @@ def is_alien_within_window(alien: Alien, window: Tuple[int]):
     """
     alien_x_coord, alien_y_coord = alien.get_centroid()
     window_width, window_height = window
-    
-    #print("_____WINDOW", window)
-    #print("LENGTH", alien.get_length())
-    #print("WIDTH", alien.get_width())
-    #print("START", alien.get_centroid())
-    #print("SIZE", alien.get_head_and_tail())
 
     # need to check each of the 3 shapes if they are within the window since different orientations, radius, lengths, etc
     if alien.is_circle():
         # need to check if the edges of the circle are within the window, which means checking if the radius of the circle is inbounds
         radius = alien.get_width()
-       # print("X: ", x)
-       # print("Y: ", y)
         if ((radius <= alien_x_coord <= window_width - radius) and (radius <= alien_y_coord <= window_height - radius)):
             return True
         else:
@@ -86,25 +78,19 @@ def is_alien_within_window(alien: Alien, window: Tuple[int]):
         head, tail = alien.get_head_and_tail()
         alien_width = alien.get_width() 
 
-       # print("HEAD: ", head[1])
-       # print("TAIL: ", tail[1])
-        #print("SHAPE W: ", width_half)
-
         # bounds checks are slightly different among vertical and horizontal shapes but same idea
         # need to check if the edges of the oblong are within the window, which means checking if the width from the center of the oblong is inbounds
         if alien.get_shape() == 'Vertical':
-          #  print("GETS HERE")
             if ((alien_width < alien_x_coord < window_width - alien_width) and (tail[1] < window_height - alien_width) and (head[1] > alien_width)):
                 return True
             else:
                 return False
         else:
-           # print("WHY HERE")
             if ((head[0] < window_width - alien_width) and (tail[0] > alien_width) and (alien_width < alien_y_coord < window_height - alien_width)):
                 return True
             else:
                 return False
-    
+
 
 def is_point_in_polygon(point, polygon):
     """Determine whether a point is in a parallelogram.
@@ -114,7 +100,52 @@ def is_point_in_polygon(point, polygon):
             point (tuple): shape of (2, ). The coordinate (x, y) of the query point.
             polygon (tuple): shape of (4, 2). The coordinate (x, y) of 4 vertices of the parallelogram.
     """
-    return False
+    x_coord, y_coord = point
+    poly_tuple_len = len(polygon)
+    less_len = poly_tuple_len - 1
+    poly_check = False
+    
+    # iterates throughout the polygon
+    for i in range(poly_tuple_len):
+        poly_x, poly_y = polygon[i]
+        other_x, other_y = polygon[less_len]
+        next_x, next_y = polygon[(i + 1) % poly_tuple_len] 
+        
+        # gets all of the line segments
+        y_min = min(poly_y, next_y)
+        y_max = max(poly_y, next_y)
+        x_min = min(poly_x, next_x)
+        x_max = max(poly_x, next_x)
+
+        # next 3 if statements check to see if the point is on the edge of the polygon
+        if (poly_x == next_x) and (poly_x == x_coord) and (y_min < y_coord < y_max):
+            return True
+        
+        if (poly_y == next_y) and (poly_y == y_coord) and (x_min < x_coord < x_max):
+            return True
+        
+        # checks to see if the point is on a line of the polygon rather than a specific point on the polygon
+        if (poly_y != next_y) and (poly_x != next_x):
+            slope = (next_y - poly_y)/(next_x - poly_x)
+            y_inter = poly_y - (slope * poly_x)
+
+            # y = mx + b formula check
+            if (y_coord == (slope*x_coord) + y_inter) and (x_min < x_coord < x_max):
+                return True
+        
+        # checks to see if the point is inside of the polygon
+        if (poly_y < y_coord and other_y >= y_coord) or (other_y < y_coord and poly_y >= y_coord):
+            long_math = poly_x + (y_coord - poly_y)/(other_y - poly_y) * (other_x - poly_x)
+            if long_math < x_coord:
+                # flips poly_check
+                if poly_check == True:
+                    poly_check = False
+                elif poly_check == False:
+                    poly_check = True
+
+        less_len = i
+    
+    return poly_check
 
 
 def does_alien_path_touch_wall(alien: Alien, walls: List[Tuple[int]], waypoint: Tuple[int, int]):
