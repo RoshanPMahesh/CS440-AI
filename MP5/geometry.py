@@ -30,6 +30,28 @@ def does_alien_touch_wall(alien: Alien, walls: List[Tuple[int]]):
         Return:
             True if touched, False if not
     """
+    # different conditions based on if the alien is a circle or not due to different lengths/radius
+    if alien.is_circle() == True:
+        # checks the distance from the alien, which is a point, to each wall line segment
+        # if the distance is within the circle radius, that means the edge of the alien is touching the wall
+        alien_coordinates = alien.get_centroid()
+        circle_radius = alien.get_width()
+        
+        for each_wall in walls:
+            startx, starty, endx, endy = each_wall 
+            if point_segment_distance(alien_coordinates, ((startx, starty), (endx, endy))) <= circle_radius:
+                return True
+    else:
+        # checks the distance from the alien, which is a line segment, to each wall line segment
+        # if the distance is within the width of the line segment, then the alien is touching the wall
+        head, tail = alien.get_head_and_tail()
+        alien_width = alien.get_width()
+
+        for each_wall in walls:
+            startx, starty, endx, endy = each_wall
+            if segment_distance((head, tail), ((startx, starty), (endx, endy))) <= alien_width:
+                return True
+
     return False
 
 
@@ -40,8 +62,49 @@ def is_alien_within_window(alien: Alien, window: Tuple[int]):
             alien (Alien): Alien instance
             window (tuple): (width, height) of the window
     """
-    return True
+    alien_x_coord, alien_y_coord = alien.get_centroid()
+    window_width, window_height = window
+    
+    #print("_____WINDOW", window)
+    #print("LENGTH", alien.get_length())
+    #print("WIDTH", alien.get_width())
+    #print("START", alien.get_centroid())
+    #print("SIZE", alien.get_head_and_tail())
 
+    # need to check each of the 3 shapes if they are within the window since different orientations, radius, lengths, etc
+    if alien.is_circle():
+        # need to check if the edges of the circle are within the window, which means checking if the radius of the circle is inbounds
+        radius = alien.get_width()
+       # print("X: ", x)
+       # print("Y: ", y)
+        if ((radius <= alien_x_coord <= window_width - radius) and (radius <= alien_y_coord <= window_height - radius)):
+            return True
+        else:
+            return False
+    else:
+        # this is for horizontal and vertical alien shapes
+        head, tail = alien.get_head_and_tail()
+        alien_width = alien.get_width() 
+
+       # print("HEAD: ", head[1])
+       # print("TAIL: ", tail[1])
+        #print("SHAPE W: ", width_half)
+
+        # bounds checks are slightly different among vertical and horizontal shapes but same idea
+        # need to check if the edges of the oblong are within the window, which means checking if the width from the center of the oblong is inbounds
+        if alien.get_shape() == 'Vertical':
+          #  print("GETS HERE")
+            if ((alien_width < alien_x_coord < window_width - alien_width) and (tail[1] < window_height - alien_width) and (head[1] > alien_width)):
+                return True
+            else:
+                return False
+        else:
+           # print("WHY HERE")
+            if ((head[0] < window_width - alien_width) and (tail[0] > alien_width) and (alien_width < alien_y_coord < window_height - alien_width)):
+                return True
+            else:
+                return False
+    
 
 def is_point_in_polygon(point, polygon):
     """Determine whether a point is in a parallelogram.
@@ -66,13 +129,51 @@ def does_alien_path_touch_wall(alien: Alien, walls: List[Tuple[int]], waypoint: 
         Return:
             True if touched, False if not
     """
-    curr_position = alien.get_centroid()
+    alien_position = alien.get_centroid()
+    radius = alien.get_width()
 
-    # iterates through all of the walls and checks if the line segment between the alien's current position and the waypoint intersects with a wall
+    # iterates through all the walls and checks the alien path for each shape
+    # have to check if the alien is already at the waypoint or not since being at the waypoint is equal to just a point, but not at the waypoint is a line segment
     for each_wall in walls:
-        start_x, start_y, end_x, end_y = each_wall
-        if do_segments_intersect((curr_position, waypoint), ((start_x, start_y), (end_x, end_y))) == True:
-            return True
+        startx, starty, endx, endy = each_wall
+        if alien.is_circle():
+            # if the alien is a circle and at the waypoint, then need to check the distance between the current position and the walls
+            # if this distance is less than or equal to the radius, then the alien path touches the wall since it touches the outside of the alien
+            if (alien_position == waypoint):
+                if point_segment_distance(alien_position, ((startx, starty), (endx, endy))) <= radius:
+                    return True
+            else:
+                # checks to see if the distance between the 2 line segments is less than or equal to the radius or else the alien can't fit
+                if segment_distance((alien_position, waypoint), ((startx, starty), (endx, endy))) <= radius:
+                    return True
+        else:
+            alien_line_seg = alien.get_head_and_tail()
+
+            # same thing as the circle alien but with a line segment to represent the vertical or horizontal alien
+            if (alien_position == waypoint):
+                if segment_distance(alien_line_seg, ((startx, starty), (endx, endy))) <= radius:
+                    return True
+            else:
+                alien_half_len = alien.get_length() / 2
+
+                # if the alien is horizontal, then changes the x coordinate to be the waypoint +- half the alien length due to the alien shape
+                # if the alien is vertical, then changes the y coordinate to be the waypoint +- half the alien length due to the alien shape
+                if alien.get_shape() == 'Horizontal':
+                    heads = (waypoint[0] - alien_half_len, waypoint[1])
+                    tails = (waypoint[0] + alien_half_len, waypoint[1])
+                else:
+                    heads = (waypoint[0], waypoint[1] - alien_half_len)
+                    tails = (waypoint[0], waypoint[1] + alien_half_len)
+
+                # checks if any of these line segments are less than or equal to the radius since then the alien can't fit
+                if segment_distance((alien_line_seg[0], heads), ((startx, starty), (endx, endy))) <= radius:
+                    return True
+                
+                if segment_distance((alien_line_seg[1], tails), ((startx, starty), (endx, endy))) <= radius:
+                    return True
+                
+                if segment_distance((alien_position, waypoint), ((startx, starty), (endx, endy))) <= radius:
+                    return True
 
     return False
 
@@ -88,7 +189,6 @@ def point_segment_distance(p, s):
             Euclidean distance from the point to the line segment.
     """
     # learned about the use of projections from: https://math.stackexchange.com/questions/62633/orthogonal-projection-of-a-point-onto-a-line
-
     x, y = p
     x1, y1 = s[0]
     x2, y2 = s[1]
@@ -143,7 +243,6 @@ def do_segments_intersect(s1, s2):
             True if line segments intersect, False if not.
     """
     # learned about the direction of ordered triplet of points from: https://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/
-
     s1_end1, s1_end2 = s1
     s2_end1, s2_end2 = s2
 
