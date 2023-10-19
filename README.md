@@ -7,3 +7,5 @@ This repository contains all of the coding assignments for CS 440: Artificial In
 - MP3: A* Search
 - MP4: A* Search for Grid Search
 - MP5: Configuration Space Planning
+- MP7: HMM POS Tagging Part 1
+- MP8: HMM POS Tagging Part 2
