@@ -19,7 +19,9 @@ def main(args):
     print()
 
     algorithms = {"baseline": baseline, "viterbi_1": viterbi_1}
+    print("ARGS: ", args.algorithm)
     algorithm = algorithms[args.algorithm]
+    
     
     print("Running {}...".format(args.algorithm))
     testtag_predictions = algorithm(train_set, utils.strip_tags(test_set))
