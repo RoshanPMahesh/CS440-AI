@@ -54,7 +54,7 @@ def training(sentences):
     num_h_tags = 0
     allTags = {}
     curr_next_tag = {}
-    allWords = {}
+    allWords = {}  
     h_tags = {}
 
     for each_sentence in sentences:
@@ -74,7 +74,7 @@ def training(sentences):
                     curr_next_tag[curr_tag][next_tag] += 1
                 
             word, tag = each_word
-            if word not in allWords:
+            if word not in allWords:    
                 allWords[word] = 1
             else:
                 allWords[word] += 1
