@@ -46,7 +46,9 @@ class NeuralNet(nn.Module):
         super(NeuralNet, self).__init__()
         self.loss_fn = loss_fn
 
-        raise NotImplementedError("You need to write this part!")
+        # these parts were figured out using the Sequential, Linear, and optimize links provided on the MP9 website
+        self.nets = nn.Sequential(nn.Linear(in_size, 167), nn.Sigmoid(), nn.Linear(167, out_size)) # constructing the network architecture - 256 based on instructions above
+        self.optimize = optim.SGD(self.parameters(), lr=0.001) # initializing the optimizer function
     
 
     def forward(self, x):
@@ -56,8 +58,12 @@ class NeuralNet(nn.Module):
         @param x: an (N, in_size) Tensor
         @return y: an (N, out_size) Tensor of output from the network
         """
-        raise NotImplementedError("You need to write this part!")
-        return torch.ones(x.shape[0], 1)
+        
+        y = self.nets(x)    # calls sequential object
+        return y    # what we are asked to return
+    
+        # raise NotImplementedError("You need to write this part!")
+        # return torch.ones(x.shape[0], 1)
 
     def step(self, x, y):
         """
@@ -67,8 +73,14 @@ class NeuralNet(nn.Module):
         @param y: an (N,) Tensor
         @return L: total empirical risk (mean of losses) for this batch as a float (scalar)
         """
-        raise NotImplementedError("You need to write this part!")
-        return 0.0
+        # returning loss.item() since it is just a single number
+        self.optimize.zero_grad()
+        yhat = self.forward(x)
+        loss_value = self.loss_fn(yhat, y)
+        loss_value.backward()
+        self.optimize.step()
+        return loss_value.item()
+
 
 
 
@@ -93,5 +105,28 @@ def fit(train_set,train_labels,dev_set,epochs,batch_size=100):
     @return yhats: an (M,) NumPy array of binary labels for dev_set
     @return net: a NeuralNet object
     """
-    raise NotImplementedError("You need to write this part!")
-    return [],[],None
+    losses = []
+
+    # Convert input arrays to PyTorch dataset
+    train_dataset = get_dataset_from_arrays(train_set, train_labels)
+
+    net = NeuralNet(lrate=0.001, loss_fn=nn.CrossEntropyLoss(), in_size=2883, out_size=4)  # 31 * 31 * 3 = 2883
+    
+    # Create DataLoader from the dataset
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True) # used this website for understanding the dataloader: https://pytorch.org/tutorials/beginner/basics/data_tutorial.html
+    
+    for iterations in range(epochs):
+        epoch_loss = 0.0
+        for batch in iter(train_loader):
+            x = batch["features"]
+            y = batch["labels"]
+            epoch_loss += net.step(x, y)    # training part
+
+        losses.append(epoch_loss / len(train_loader))
+
+    output = net(torch.Tensor(dev_set))     # makes it a multi dimensional matrix
+    throwaway, predicted = torch.max(output, 1)     # used this website: https://pytorch.org/docs/stable/generated/torch.max.html
+    yhats = predicted.numpy()   # makes it a numpy array
+
+    return losses, yhats, net
+
