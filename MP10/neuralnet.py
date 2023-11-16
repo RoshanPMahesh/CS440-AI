@@ -9,7 +9,7 @@
 # Modified by James Soole for the Fall 2023 semester
 
 """
-This is the main entry point for MP10. You should only modify code within this file.
+This is the main entry point for MP9. You should only modify code within this file.
 The unrevised staff files will be used for all other files and classes when code is run, 
 so be careful to not modify anything else.
 """
@@ -45,10 +45,12 @@ class NeuralNet(nn.Module):
         """
         super(NeuralNet, self).__init__()
         self.loss_fn = loss_fn
-
-        # these parts were figured out using the Sequential, Linear, and optimize links provided on the MP9 website
-        self.nets = nn.Sequential(nn.Linear(in_size, 167), nn.Sigmoid(), nn.Linear(167, out_size)) # constructing the network architecture - 256 based on instructions above
-        self.optimize = optim.SGD(self.parameters(), lr=0.001) # initializing the optimizer function
+        
+        # values from: https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
+        self.conv_layers = nn.Sequential(nn.Conv2d(in_channels=3, out_channels=6, kernel_size=2), nn.ReLU(), nn.MaxPool2d(kernel_size=2, stride=2), nn.Conv2d(in_channels=6, out_channels=18, kernel_size=2), nn.ReLU(), nn.MaxPool2d(kernel_size=2, stride=2), nn.Conv2d(in_channels=18, out_channels=32, kernel_size=2), nn.ReLU(), nn.MaxPool2d(kernel_size=2, stride=2))
+        self.full_layers = nn.Sequential(nn.Linear(288, 200), nn.ReLU(), nn.Linear(200, out_size))
+        
+        self.optimize = optim.SGD(self.parameters(), lr=0.01) # initializing the optimizer function
     
 
     def forward(self, x):
@@ -58,12 +60,12 @@ class NeuralNet(nn.Module):
         @param x: an (N, in_size) Tensor
         @return y: an (N, out_size) Tensor of output from the network
         """
-        
-        y = self.nets(x)    # calls sequential object
-        return y    # what we are asked to return
+        x = x.view(-1, 3, 31, 31)   # used these values from a discussion in a piazza post
+        x = self.conv_layers(x)
+        x = torch.flatten(x, 1)
+        x = self.full_layers(x)
+        return x
     
-        # raise NotImplementedError("You need to write this part!")
-        # return torch.ones(x.shape[0], 1)
 
     def step(self, x, y):
         """
@@ -80,8 +82,6 @@ class NeuralNet(nn.Module):
         loss_value.backward()
         self.optimize.step()
         return loss_value.item()
-
-
 
 
 def fit(train_set,train_labels,dev_set,epochs,batch_size=100):
@@ -110,7 +110,7 @@ def fit(train_set,train_labels,dev_set,epochs,batch_size=100):
     # Convert input arrays to PyTorch dataset
     train_dataset = get_dataset_from_arrays(train_set, train_labels)
 
-    net = NeuralNet(lrate=0.001, loss_fn=nn.CrossEntropyLoss(), in_size=2883, out_size=4)  # 31 * 31 * 3 = 2883
+    net = NeuralNet(lrate=0.01, loss_fn=nn.CrossEntropyLoss(),in_size=2883, out_size=4)  # 31 * 31 * 3 = 2883
     
     # Create DataLoader from the dataset
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True) # used this website for understanding the dataloader: https://pytorch.org/tutorials/beginner/basics/data_tutorial.html
@@ -129,3 +129,4 @@ def fit(train_set,train_labels,dev_set,epochs,batch_size=100):
     yhats = predicted.numpy()   # makes it a numpy array
 
     return losses, yhats, net
+
