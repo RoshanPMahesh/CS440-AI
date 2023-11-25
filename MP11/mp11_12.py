@@ -48,8 +48,8 @@ class Application:
                 self.agent = Agent(self.env.get_actions(), self.args.Ne, self.args.C, self.args.gamma, self.args.width,
                                    self.args.height)
 
-                # self.env.display()    # uncomment this line if you want to display the game
-                # pygame.event.pump()   # uncomment this line if you want to display the game
+                self.env.display()    # uncomment this line if you want to display the game
+                pygame.event.pump()   # uncomment this line if you want to display the game
 
                 dead = False
                 count = 0
@@ -76,7 +76,7 @@ class Application:
                 if not np.array_equal(self.agent.Q, gold_Q):
                     print("Warning: Your Q table does not match gold table for game", game)
                     match = False
-                elif not np.array_equal(self.agent.N, gold_N):
+                if not np.array_equal(self.agent.N, gold_N):
                     print("Warning: Your N table does not match gold table for game", game)
                     match = False
 

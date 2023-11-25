@@ -42,12 +42,25 @@ class Agent:
         self.a = None
     
     def update_n(self, state, action):
-        # TODO - MP11: Update the N-table. 
-        pass
+        # TODO - MP11: Update the N-table.
+        if state is not None and action is not None:
+            self.N[state][action] += 1
+        #pass
 
     def update_q(self, s, a, r, s_prime):
-        # TODO - MP11: Update the Q-table. 
-        pass        
+        # TODO - MP11: Update the Q-table.
+        if s is not None and a is not None and s_prime is not None:
+            if self.N[s + (a,)] < self.Ne:
+                f_value = 1
+            else:
+                f_value = self.Q[s + (a,)]
+
+            a_t = np.argmax(f_value)
+
+            alpha = self.C / (self.C + self.N[s + (a_t,)])
+
+            self.Q[s + (a_t,)] += alpha * (r + self.gamma * np.max(self.Q[s_prime]) - self.Q[s + (a_t,)])
+        #pass        
 
     def act(self, environment, points, dead):
         '''
@@ -72,5 +85,63 @@ class Agent:
         All of these are just numbers, except for snake_body, which is a list of (x,y) positions 
         '''
         # TODO - MP11: Implement this helper function that generates a state given an environment 
+        snake_head_x, snake_head_y, snake_body, food_x, food_y, rock_x, rock_y = environment
 
-        return None
+        # head and food
+        if food_x < snake_head_x:
+            food_dir_x = 1
+        else:
+            if food_x > snake_head_x:
+                food_dir_x = 2
+            else:
+                food_dir_x = 0
+        
+        if food_y < snake_head_y:
+            food_dir_y = 1
+        else:
+            if food_y > snake_head_y:
+                food_dir_y = 2
+            else:
+                food_dir_y = 0
+
+        # head and wall
+        adjoining_wall_x = 0
+        adjoining_wall_y = 0
+
+        if snake_head_x == 1 or (snake_head_x == rock_x + 2 and snake_head_y == rock_y) or (snake_head_x == self.display_width - 2 and snake_head_x == rock_x + 2 and snake_head_y == rock_y):
+            adjoining_wall_x = 1
+        elif snake_head_x == self.display_width - 2 or (snake_head_x == rock_x - 1 and snake_head_y == rock_y):
+            adjoining_wall_x = 2
+
+        if snake_head_y == 1 or (snake_head_y == rock_y + 1 and snake_head_x == rock_x) or (snake_head_y == rock_y + 1 and snake_head_x == rock_x + 1) or (snake_head_y == self.display_height - 2 and snake_head_y == rock_y + 1 and snake_head_x == rock_x) or (snake_head_y == self.display_height - 2 and snake_head_y == rock_y + 1 and snake_head_x == rock_x + 1):
+            adjoining_wall_y = 1
+        elif snake_head_y == self.display_height - 2 or (snake_head_y == rock_y - 1 and snake_head_x == rock_x):
+            adjoining_wall_y = 2
+
+        
+        # head and body
+        if (snake_head_x, snake_head_y - 1) in snake_body:
+            adjoining_body_top = 1
+        else:
+            adjoining_body_top = 0
+
+        if (snake_head_x, snake_head_y + 1) in snake_body:
+            adjoining_body_bottom = 1
+        else:
+            adjoining_body_bottom = 0
+
+        if (snake_head_x - 1, snake_head_y) in snake_body:
+            adjoining_body_left = 1
+        else:
+            adjoining_body_left = 0
+
+        if (snake_head_x + 1, snake_head_y) in snake_body:
+            adjoining_body_right = 1
+        else:
+            adjoining_body_right = 0
+
+        state = (food_dir_x, food_dir_y, adjoining_wall_x, adjoining_wall_y, adjoining_body_top, adjoining_body_bottom, adjoining_body_left, adjoining_body_right)
+        #print("STATE: ", state)
+
+        return state
+        #return None
