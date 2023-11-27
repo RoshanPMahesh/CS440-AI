@@ -48,8 +48,8 @@ class Application:
                 self.agent = Agent(self.env.get_actions(), self.args.Ne, self.args.C, self.args.gamma, self.args.width,
                                    self.args.height)
 
-                self.env.display()    # uncomment this line if you want to display the game
-                pygame.event.pump()   # uncomment this line if you want to display the game
+                #self.env.display()    # uncomment this line if you want to display the game
+                #pygame.event.pump()   # uncomment this line if you want to display the game
 
                 dead = False
                 count = 0

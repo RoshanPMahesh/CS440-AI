@@ -50,16 +50,16 @@ class Agent:
     def update_q(self, s, a, r, s_prime):
         # TODO - MP11: Update the Q-table.
         if s is not None and a is not None and s_prime is not None:
-            if self.N[s + (a,)] < self.Ne:
-                f_value = 1
-            else:
-                f_value = self.Q[s + (a,)]
+            # if self.N[s + (a,)] < self.Ne:
+            #     f_value = 1
+            # else:
+            #     f_value = self.Q[s + (a,)]
 
-            a_t = np.argmax(f_value)
+            # a_t = np.argmax(f_value)
 
-            alpha = self.C / (self.C + self.N[s + (a_t,)])
+            alpha = self.C / (self.C + self.N[s][a])
 
-            self.Q[s + (a_t,)] += alpha * (r + self.gamma * np.max(self.Q[s_prime]) - self.Q[s + (a_t,)])
+            self.Q[s][a] = self.Q[s][a] + alpha * (r + self.gamma * np.max(self.Q[s_prime]) - self.Q[s][a])
         #pass        
 
     def act(self, environment, points, dead):
