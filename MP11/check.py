@@ -5,16 +5,16 @@ import utils
 # Parameters are:
 # snake_head_x=5, snake_head_y=5, food_x=2, food_y=2, width=18, 
 # height=10, rock_x=3, rock_y=4, Ne=40, C=40, gamma=0.7
-true_Q = utils.load('data/checkpoint1.npy')
-true_N = utils.load('data/checkpoint1_N.npy')
+# true_Q = utils.load('data/checkpoint1.npy')
+# true_N = utils.load('data/checkpoint1_N.npy')
 
 # For checkpoint2
 # Parameters are:
 # snake_head_x=5, snake_head_y=5, food_x=2, food_y=2, width=18, 
 # height=10, rock_x=3, rock_y=4, Ne=20, C=60, gamma=0.5
 # Uncomment the two lines below for checkpoint2
-# true_Q = utils.load('data/checkpoint2.npy')
-# true_N = utils.load('data/checkpoint2_N.npy')
+true_Q = utils.load('data/checkpoint2.npy')
+true_N = utils.load('data/checkpoint2_N.npy')
 
 # For checkpoint3
 # Parameters are:

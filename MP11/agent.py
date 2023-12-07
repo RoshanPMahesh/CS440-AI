@@ -43,13 +43,13 @@ class Agent:
     
     def update_n(self, state, action):
         # TODO - MP11: Update the N-table.
-        if state is not None and action is not None:
+        #if (state is not None and action is not None):
             self.N[state][action] += 1
         #pass
 
     def update_q(self, s, a, r, s_prime):
         # TODO - MP11: Update the Q-table.
-        if s is not None and a is not None and s_prime is not None:
+        #if (s is not None and a is not None and s_prime is not None) or r == -1:
             # if self.N[s + (a,)] < self.Ne:
             #     f_value = 1
             # else:
@@ -77,7 +77,76 @@ class Agent:
 
         # TODO - MP12: write your function here
 
-        return utils.RIGHT
+        # some important bookkeeping
+        reward = -0.1
+        priority_order = [utils.RIGHT, utils.LEFT, utils.DOWN, utils.UP]   # correct priority order
+
+        if self._train is True:
+            # analyzing information coming in from the environment - are we dead
+            if dead is True:
+                reward = -1
+                self.update_n(self.s, self.a)
+                self.update_q(self.s, self.a, reward, s_prime)
+                
+                # need to reset the game after a death
+                self.reset()
+                
+                #print("ACTION: ", actions[0])
+                return priority_order[0]    # can return anything since we reset anyway
+        
+            if self.s is not None and self.a is not None:
+                reward = -0.1
+                if points > self.points:
+                    reward = 1   # did we eat food pellet
+                
+                self.update_n(self.s, self.a)
+                self.update_q(self.s, self.a, reward, s_prime)
+        else:
+            if dead is True:
+                reward = -1
+                self.update_n(self.s, self.a)
+                self.update_q(self.s, self.a, reward, s_prime)
+                
+                # need to reset the game after a death
+                self.reset()
+                
+                #print("ACTION: ", actions[0])
+                return priority_order[0]    # can return anything since we reset anyway
+
+        # check if we are in training phase - update q and n tables
+        # if self._train:
+        #     self.update_n(self.s, self.a)
+        #     self.update_q(self.s, self.a, reward, s_prime)
+        
+        # exploration stuff
+        act = self.optimal_action(priority_order, s_prime)
+        
+        # updating 
+        self.s = s_prime
+        self.a = act
+        self.points = points
+        
+        return act
+
+    
+    def optimal_action(self, actions_array, s_prime):
+        action = [self.exploration_policy(direction, s_prime) for direction in actions_array]
+        index = np.argmax(action)
+        return actions_array[index]
+
+
+    def exploration_policy(self, direction, s_prime):
+        food_dir_x, food_dir_y, adjoining_wall_x, adjoining_wall_y, adjoining_body_top, adjoining_body_bottom, adjoining_body_left, adjoining_body_right = s_prime
+        
+        # if we're not in training phase, then we return the self.Q
+        if self._train:
+            if self.N[(food_dir_x, food_dir_y, adjoining_wall_x, adjoining_wall_y, adjoining_body_top, adjoining_body_bottom, adjoining_body_left, adjoining_body_right, direction)] < self.Ne:
+                return 1
+            else:
+                return self.Q[(food_dir_x, food_dir_y, adjoining_wall_x, adjoining_wall_y, adjoining_body_top, adjoining_body_bottom, adjoining_body_left, adjoining_body_right, direction)]
+        else:
+            return self.Q[(food_dir_x, food_dir_y, adjoining_wall_x, adjoining_wall_y, adjoining_body_top, adjoining_body_bottom, adjoining_body_left, adjoining_body_right, direction)]
+        
 
     def generate_state(self, environment):
         '''

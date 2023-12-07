@@ -11,5 +11,4 @@ This repository contains all of the coding assignments for CS 440: Artificial In
 - MP8: HMM POS Tagging Part 2
 - MP9: Neural Nets Part 1
 - MP10: Neural Nets Part 2
-- MP11: Reinforcement Learning Part 1
-- MP12: Reinforcement Learning Part 2
+- MP11: Reinforcement Learning
